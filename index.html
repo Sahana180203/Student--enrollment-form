@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Enrollment Form - SCHOOL-DB</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Segoe UI, sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #1e3a5f; margin-bottom: 4px; }
+    .subtitle { font-size: 0.82rem; color: #6b7280; margin-bottom: 1.5rem; }
+    .status { width:100%; max-width:580px; padding:10px 16px; border-radius:8px; font-size:0.875rem; margin-bottom:1rem; }
+    .info    { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+    .success { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+    .danger  { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+    .warning { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
+    .card { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08); width:100%; max-width:580px; overflow:hidden; }
+    .pk-bar { background:#eef2ff; padding:1rem 1.25rem; border-bottom:1px solid #e0e7ff; }
+    .pk-bar label { font-size:0.72rem; font-weight:700; color:#4338ca; text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:6px; }
+    .pk-row { display:flex; gap:8px; }
+    .pk-row input { flex:1; height:38px; border:1px solid #c7d2fe; border-radius:8px; padding:0 10px; font-size:0.9rem; font-family:monospace; }
+    .pk-row input:disabled { background:#f3f4f6; color:#9ca3af; cursor:not-allowed; }
+    .lookup-btn { height:38px; padding:0 18px; background:#6366f1; color:#fff; border:none; border-radius:8px; font-size:0.875rem; font-weight:600; cursor:pointer; }
+    .fields { display:grid; grid-template-columns:1fr 1fr; gap:1rem; padding:1.25rem; }
+    .field { display:flex; flex-direction:column; gap:5px; }
+    .field.full { grid-column:1/-1; }
+    .field label { font-size:0.78rem; font-weight:700; color:#374151; }
+    .field input, .field textarea { border:1px solid #d1d5db; border-radius:8px; padding:8px 10px; font-size:0.875rem; }
+    .field textarea { height:70px; resize:none; }
+    .field input:disabled, .field textarea:disabled { background:#f9fafb; color:#9ca3af; cursor:not-allowed; }
+    .field input.err, .field textarea.err { border-color:#ef4444; box-shadow:0 0 0 2px #fee2e2; }
+    .actions { display:flex; gap:8px; padding:1rem 1.25rem; background:#f9fafb; border-top:1px solid #e5e7eb; }
+    .btn { height:38px; padding:0 20px; border-radius:8px; border:none; font-size:0.875rem; font-weight:700; cursor:pointer; }
+    .btn:disabled { opacity:0.35; cursor:not-allowed; }
+    .btn-save   { background:#22c55e; color:#fff; }
+    .btn-update { background:#3b82f6; color:#fff; }
+    .btn-reset  { background:#e5e7eb; color:#374151; margin-left:auto; }
+    #tableSection { width:100%; max-width:580px; margin-top:1.5rem; }
+    .table-title { font-size:0.8rem; color:#6b7280; font-weight:600; margin-bottom:6px; }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,0.07); font-size:0.8rem; }
+    th { background:#f1f5f9; padding:8px 10px; text-align:left; color:#6b7280; font-weight:700; border-bottom:1px solid #e2e8f0; }
+    td { padding:7px 10px; border-bottom:1px solid #f1f5f9; color:#1f2937; }
+    tr:last-child td { border-bottom:none; }
+    tr.datarow:hover td { background:#f8fafc; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<h1>🎓 Student Enrollment Form</h1>
+<p class="subtitle">STUDENT-TABLE &nbsp;·&nbsp; SCHOOL-DB &nbsp;·&nbsp; Powered by JSONPowerDB</p>
+
+<div class="status info" id="status">Enter a Roll No. and click Look Up to begin.</div>
+
+<div class="card">
+  <div class="pk-bar">
+    <label>🔑 Primary Key — Roll No.</label>
+    <div class="pk-row">
+      <input type="text" id="rollNo" placeholder="e.g. S001" autocomplete="off" />
+      <button class="lookup-btn" onclick="lookupRoll()">Look Up</button>
+    </div>
+  </div>
+  <div class="fields">
+    <div class="field">
+      <label>Full Name *</label>
+      <input type="text" id="fullName" placeholder="e.g. Priya Sharma" disabled />
+    </div>
+    <div class="field">
+      <label>Class *</label>
+      <input type="text" id="cls" placeholder="e.g. 10-A" disabled />
+    </div>
+    <div class="field">
+      <label>Birth Date *</label>
+      <input type="date" id="birthDate" disabled />
+    </div>
+    <div class="field">
+      <label>Enrollment Date *</label>
+      <input type="date" id="enrollDate" disabled />
+    </div>
+    <div class="field full">
+      <label>Address *</label>
+      <textarea id="address" placeholder="Full address" disabled></textarea>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-save"   id="saveBtn"   disabled onclick="saveRecord()">💾 Save</button>
+    <button class="btn btn-update" id="updateBtn" disabled onclick="updateRecord()">✏️ Update</button>
+    <button class="btn btn-reset"  id="resetBtn"  disabled onclick="resetForm()">↺ Reset</button>
+  </div>
+</div>
+
+<div id="tableSection" style="display:none">
+  <p class="table-title">📋 Stored records — click a row to load it</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Roll No.</th><th>Full Name</th><th>Class</th><th>Birth Date</th><th>Enrolled On</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<script>
+  var TOKEN   = "90935254|-31949236501270278|90958462";
+  var DB_NAME = "SCHOOL-DB";
+  var REL     = "STUDENT-TABLE";
+  var BASE    = "http://api.login2explore.com:5577";
+
+  var recNo = null;
+
+  function setStatus(type, msg) {
+    var el = document.getElementById("status");
+    el.className = "status " + type;
+    el.textContent = msg;
+  }
+
+  function val(id) { return document.getElementById(id).value.trim(); }
+  function setVal(id, v) { document.getElementById(id).value = v; }
+
+  function disableFields(yes) {
+    ["fullName","cls","birthDate","enrollDate","address"].forEach(function(id) {
+      var el = document.getElementById(id);
+      el.disabled = yes;
+      el.classList.remove("err");
+    });
+  }
+
+  function clearFields() {
+    ["fullName","cls","birthDate","enrollDate","address"].forEach(function(id) {
+      document.getElementById(id).value = "";
+    });
+  }
+
+  function setButtons(save, update, reset) {
+    document.getElementById("saveBtn").disabled   = !save;
+    document.getElementById("updateBtn").disabled = !update;
+    document.getElementById("resetBtn").disabled  = !reset;
+  }
+
+  function resetForm() {
+    recNo = null;
+    document.getElementById("rollNo").value = "";
+    document.getElementById("rollNo").disabled = false;
+    clearFields();
+    disableFields(true);
+    setButtons(false, false, false);
+    setStatus("info", "Enter a Roll No. and click Look Up to begin.");
+    document.getElementById("rollNo").focus();
+  }
+
+  function validate() {
+    var ok = true;
+    ["fullName","cls","birthDate","enrollDate","address"].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el.value.trim()) { el.classList.add("err"); ok = false; }
+      else el.classList.remove("err");
+    });
+    if (!ok) setStatus("danger", "All fields are required.");
+    return ok;
+  }
+
+  async function callAPI(endpoint, body) {
+    try {
+      var res = await fetch(BASE + endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      var text = await res.text();
+      return JSON.parse(text);
+    } catch(e) {
+      return { status: 500, message: e.message };
+    }
+  }
+
+  async function lookupRoll() {
+    var roll = val("rollNo");
+    if (!roll) { setStatus("danger", "Please enter a Roll No."); return; }
+    setStatus("info", "Looking up...");
+
+    var data = await callAPI("/api/irl", {
+      token:   TOKEN,
+      dbName:  DB_NAME,
+      cmd:     "GET_BY_KEY",
+      rel:     REL,
+      jsonStr: { "Roll-No": roll }
+    });
+
+    if (data.status === 200) {
+      var d = data.data.record;
+      recNo = data.data.rec_no;
+      setVal("fullName",  d["Full-Name"]);
+      setVal("cls",       d["Class"]);
+      setVal("birthDate", d["Birth-Date"]);
+      setVal("address",   d["Address"]);
+      setVal("enrollDate",d["Enrollment-Date"]);
+      disableFields(false);
+      document.getElementById("rollNo").disabled = true;
+      setButtons(false, true, true);
+      setStatus("warning", 'Roll No. "'+roll+'" found. Edit and click Update, or Reset.');
+      document.getElementById("fullName").focus();
+    } else {
+      recNo = null;
+      clearFields();
+      disableFields(false);
+      setButtons(true, false, true);
+      setStatus("info", 'Roll No. "'+roll+'" not found. Fill details and click Save.');
+      document.getElementById("fullName").focus();
+    }
+  }
+
+  async function saveRecord() {
+    if (!validate()) return;
+    setStatus("info", "Saving...");
+
+    var data = await callAPI("/api/iml", {
+      token:   TOKEN,
+      dbName:  DB_NAME,
+      cmd:     "PUT",
+      rel:     REL,
+      jsonStr: {
+        "Roll-No":         val("rollNo"),
+        "Full-Name":       val("fullName"),
+        "Class":           val("cls"),
+        "Birth-Date":      document.getElementById("birthDate").value,
+        "Address":         val("address"),
+        "Enrollment-Date": document.getElementById("enrollDate").value
+      }
+    });
+
+    if (data.status === 200) {
+      setStatus("success", "✅ Student saved successfully in SCHOOL-DB!");
+      loadTable();
+      setTimeout(resetForm, 2000);
+    } else {
+      setStatus("danger", "Error: " + data.message);
+    }
+  }
+
+  async function updateRecord() {
+    if (!validate()) return;
+    setStatus("info", "Updating...");
+
+    var record = {
+      "Roll-No":         val("rollNo"),
+      "Full-Name":       val("fullName"),
+      "Class":           val("cls"),
+      "Birth-Date":      document.getElementById("birthDate").value,
+      "Address":         val("address"),
+      "Enrollment-Date": document.getElementById("enrollDate").value
+    };
+
+    var data = await callAPI("/api/iml", {
+      token:   TOKEN,
+      dbName:  DB_NAME,
+      cmd:     "UPDATE",
+      rel:     REL,
+      jsonStr: { rec: recNo, data: record }
+    });
+
+    if (data.status === 200) {
+      setStatus("success", "✅ Record updated successfully in SCHOOL-DB!");
+      loadTable();
+      setTimeout(resetForm, 2000);
+    } else {
+      setStatus("danger", "Error: " + data.message);
+    }
+  }
+
+  async function loadTable() {
+    var data = await callAPI("/api/irl", {
+      token:   TOKEN,
+      dbName:  DB_NAME,
+      cmd:     "GET_ALL",
+      rel:     REL,
+      jsonStr: {}
+    });
+
+    if (!data || data.status !== 200) {
+      document.getElementById("tableSection").style.display = "none";
+      return;
+    }
+
+    var rows = data.data;
+    if (!rows || rows.length === 0) {
+      document.getElementById("tableSection").style.display = "none";
+      return;
+    }
+
+    document.getElementById("tableSection").style.display = "block";
+    var html = "";
+    rows.forEach(function(item) {
+      var d = item.record;
+      html += '<tr class="datarow" onclick="loadRow(\''+d["Roll-No"]+'\')">'+
+        "<td>"+d["Roll-No"]+"</td>"+
+        "<td>"+d["Full-Name"]+"</td>"+
+        "<td>"+d["Class"]+"</td>"+
+        "<td>"+d["Birth-Date"]+"</td>"+
+        "<td>"+d["Enrollment-Date"]+"</td>"+
+        "</tr>";
+    });
+    document.getElementById("tbody").innerHTML = html;
+  }
+
+  function loadRow(roll) {
+    document.getElementById("rollNo").value = roll;
+    document.getElementById("rollNo").disabled = false;
+    lookupRoll();
+  }
+
+  document.getElementById("rollNo").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") lookupRoll();
+  });
+
+  resetForm();
+  loadTable();
+</script>
+</body>
+</html>
